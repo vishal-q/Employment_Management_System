@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Salary - EMS</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">E</div><div><h2>EMS</h2><p>Management Portal</p></div></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="/dashboard"><span class="nav-icon">&#127968;</span> Dashboard</a>
+        <div sec:authorize="hasRole('ADMIN')"><a href="/employees"><span class="nav-icon">&#128101;</span> Employees</a></div>
+        <a href="/attendance"><span class="nav-icon">&#128197;</span> Attendance</a>
+        <a href="/leave"><span class="nav-icon">&#128203;</span> Leave</a>
+        <div sec:authorize="hasRole('EMPLOYEE')"><a href="/my-profile"><span class="nav-icon">&#128100;</span> My Profile</a></div>
+        <div class="nav-section-title">HR</div>
+        <a href="/salary" class="active"><span class="nav-icon">&#128176;</span> Salary Slips</a>
+        <a href="/performance"><span class="nav-icon">&#11088;</span> Performance</a>
+        <a href="/holidays"><span class="nav-icon">&#127881;</span> Holidays</a>
+        <div class="nav-section-title">Communication</div>
+        <a href="/announcements"><span class="nav-icon">&#128226;</span> Announcements</a>
+        <a href="/messages"><span class="nav-icon">&#128140;</span> Messages</a>
+        <a href="/tasks"><span class="nav-icon">&#9989;</span> Tasks</a>
+        <a href="/wfh"><span class="nav-icon">&#127968;</span> Work From Home</a>
+        <a href="/complaints"><span class="nav-icon">&#128226;</span> Complaints</a>
+        <a href="/notifications"><span class="nav-icon">&#128276;</span> Notifications</a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">&#128682; Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left"><h1>Salary Slips</h1><p>Payroll management</p></div>
+        <div class="topbar-right"><button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button></div>
+    </div>
+
+    <div class="page-content">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+        <div th:if="${noProfile}" class="alert alert-info">Your profile is not linked. Contact Admin.</div>
+
+        <!-- Admin: Generate Salary Slip -->
+        <div sec:authorize="hasRole('ADMIN')" class="form-card" style="margin-bottom:20px;">
+            <h3 class="form-title">&#128176; Generate Salary Slip</h3>
+            <form th:action="@{/salary/generate}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Employee *</label>
+                        <select name="employeeId" class="form-control" required>
+                            <option value="">Select Employee</option>
+                            <option th:each="emp : ${employees}" th:value="${emp.id}"
+                                    th:text="${emp.name} + ' (' + ${emp.employeeCode} + ')'">-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Pay Period * (YYYY-MM)</label>
+                        <input type="month" name="payPeriod" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Working Days</label>
+                        <input type="number" name="workingDays" class="form-control" value="26" min="1" max="31">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Basic Salary *</label><input type="number" name="basicSalary" class="form-control" placeholder="0" required min="0"></div>
+                    <div class="form-group"><label>HRA</label><input type="number" name="hra" class="form-control" placeholder="0" min="0"></div>
+                    <div class="form-group"><label>Transport Allowance</label><input type="number" name="transportAllowance" class="form-control" placeholder="0" min="0"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Medical Allowance</label><input type="number" name="medicalAllowance" class="form-control" placeholder="0" min="0"></div>
+                    <div class="form-group"><label>Other Allowances</label><input type="number" name="otherAllowances" class="form-control" placeholder="0" min="0"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Provident Fund</label><input type="number" name="providentFund" class="form-control" placeholder="0" min="0"></div>
+                    <div class="form-group"><label>Professional Tax</label><input type="number" name="professionalTax" class="form-control" placeholder="0" min="0"></div>
+                    <div class="form-group"><label>Income Tax</label><input type="number" name="incomeTax" class="form-control" placeholder="0" min="0"></div>
+                </div>
+                <button type="submit" class="btn-submit">&#128176; Generate Slip</button>
+            </form>
+        </div>
+
+        <!-- Salary Slips Table -->
+        <div class="table-card">
+            <div class="table-header"><h3>&#128196; Salary Slip Records</h3></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th th:if="${isAdmin}">Employee</th>
+                        <th>Month</th>
+                        <th>Basic</th>
+                        <th>Gross</th>
+                        <th>Deductions</th>
+                        <th>Net Pay</th>
+                        <th>Status</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="slip,i : ${slips}">
+                        <td th:text="${i.count}">1</td>
+                        <td th:if="${isAdmin}" th:text="${slip.employeeName}">-</td>
+                        <td th:text="${slip.month}">-</td>
+                        <td th:text="'Rs.' + ${#numbers.formatDecimal(slip.basicSalary,1,'COMMA',0,'POINT')}">-</td>
+                        <td th:text="'Rs.' + ${#numbers.formatDecimal(slip.grossSalary,1,'COMMA',0,'POINT')}">-</td>
+                        <td style="color:#e74c3c;" th:text="'Rs.' + ${#numbers.formatDecimal(slip.totalDeductions,1,'COMMA',0,'POINT')}">-</td>
+                        <td style="color:#1abc9c;font-weight:700;" th:text="'Rs.' + ${#numbers.formatDecimal(slip.netSalary,1,'COMMA',0,'POINT')}">-</td>
+                        <td><span class="badge" th:classappend="${slip.status == 'Paid'} ? 'badge-approved' : 'badge-pending'" th:text="${slip.status}">-</span></td>
+                        <td>
+                            <a th:href="@{/salary/download/{id}(id=${slip.id})}" class="btn btn-primary" style="text-decoration:none;">&#128196; PDF</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${slips.isEmpty()}"><td colspan="9" class="empty-cell">No salary slips found.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Employee - EMS</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">E</div><div><h2>EMS</h2><p>Management Portal</p></div></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="/dashboard"><span class="nav-icon">&#127968;</span> Dashboard</a>
+        <a href="/employees" class="active"><span class="nav-icon">&#128101;</span> Employees</a>
+        <a href="/attendance"><span class="nav-icon">&#128197;</span> Attendance</a>
+        <a href="/leave"><span class="nav-icon">&#128203;</span> Leave</a>
+        <a href="/departments"><span class="nav-icon">&#127970;</span> Departments</a>
+        <div class="nav-section-title">Reports</div>
+        <a href="/downloadEmployees"><span class="nav-icon">&#128196;</span> Export PDF</a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">&#128682; Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left"><h1>Add Employee</h1><p>Fill in employee details</p></div>
+        <div class="topbar-right">
+            <button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button>
+            <a href="/employees" class="btn btn-danger" style="text-decoration:none;">&#8592; Back</a>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <form th:action="@{/saveEmployee}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <!-- Personal Info -->
+            <div class="form-card" style="margin-bottom:20px;">
+                <h3 class="form-title">&#128100; Personal Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" class="form-control" placeholder="john@company.com" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" name="phone" class="form-control" placeholder="+91 9876543210">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="gender" class="form-control">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="dateOfBirth" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Group</label>
+                        <select name="bloodGroup" class="form-control">
+                            <option value="">Select</option>
+                            <option>A+</option><option>A-</option>
+                            <option>B+</option><option>B-</option>
+                            <option>O+</option><option>O-</option>
+                            <option>AB+</option><option>AB-</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="address" class="form-control" placeholder="Full address">
+                </div>
+            </div>
+
+            <!-- Job Info -->
+            <div class="form-card" style="margin-bottom:20px;">
+                <h3 class="form-title">&#128188; Job Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select name="department" class="form-control" required>
+                            <option value="">Select Department</option>
+                            <option th:each="d : ${departments}" th:value="${d.name}" th:text="${d.name}">Dept</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Position / Job Title *</label>
+                        <input type="text" name="position" class="form-control" placeholder="e.g. Software Engineer" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date of Joining</label>
+                        <input type="date" name="dateOfJoining" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Employment Type</label>
+                        <select name="employmentType" class="form-control">
+                            <option value="Full-Time">Full-Time</option>
+                            <option value="Part-Time">Part-Time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Intern">Intern</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="status" class="form-control">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Employee Code (auto if blank)</label>
+                        <input type="text" name="employeeCode" class="form-control" placeholder="EMP-001">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Info -->
+            <div class="form-card" style="margin-bottom:20px;">
+                <h3 class="form-title">&#128176; Salary Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Basic Salary (Rs.)</label>
+                        <input type="number" name="basicSalary" class="form-control" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Allowances (Rs.)</label>
+                        <input type="number" name="allowances" class="form-control" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Salary (Rs.)</label>
+                        <input type="number" name="salary" class="form-control" id="totalSalary" placeholder="0" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Login Account -->
+            <div class="form-card" style="margin-bottom:20px;">
+                <h3 class="form-title">&#128273; Create Login Account (Optional)</h3>
+                <p style="font-size:13px;color:#888;margin-bottom:16px;">Create a portal login for this employee so they can access their own data.</p>
+                <div style="margin-bottom:14px;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;">
+                        <input type="checkbox" name="createAccount" id="createAccChk" onchange="toggleAccountFields(this)">
+                        Create Login Account for this Employee
+                    </label>
+                </div>
+                <div id="accountFields" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" name="empUsername" class="form-control" placeholder="employee username">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" name="empPassword" class="form-control" placeholder="set password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">&#10003; Save Employee</button>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/dashboard.js}"></script>
+<script>
+function toggleAccountFields(chk) {
+    document.getElementById('accountFields').style.display = chk.checked ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

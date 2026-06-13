@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - EMS</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">E</div><div><h2>EMS</h2><p>Management Portal</p></div></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="/dashboard"><span class="nav-icon">&#127968;</span> Dashboard</a>
+        <a href="/attendance"><span class="nav-icon">&#128197;</span> Attendance</a>
+        <a href="/leave"><span class="nav-icon">&#128203;</span> Leave</a>
+        <a href="/my-profile" class="active"><span class="nav-icon">&#128100;</span> My Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">&#128682; Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left"><h1>My Profile</h1><p>Your personal information</p></div>
+        <div class="topbar-right"><button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button></div>
+    </div>
+
+    <div class="page-content">
+
+        <!-- No profile linked -->
+        <div th:if="${noProfile}" class="alert alert-info">
+            Your account is not linked to an employee profile. Please contact your Admin.
+        </div>
+
+        <div th:if="${employee != null}">
+
+            <!-- Stats -->
+            <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+                <div class="stat-card stat-blue">
+                    <div class="stat-icon">&#128197;</div>
+                    <div class="stat-info"><h3>Total Attendance</h3><p class="counter" th:text="${attendanceList.size()}">0</p></div>
+                </div>
+                <div class="stat-card stat-green">
+                    <div class="stat-icon">&#128994;</div>
+                    <div class="stat-info"><h3>Present Days</h3><p class="counter" th:text="${presentCount}">0</p></div>
+                </div>
+                <div class="stat-card stat-orange">
+                    <div class="stat-icon">&#128203;</div>
+                    <div class="stat-info"><h3>Approved Leaves</h3><p class="counter" th:text="${approvedLeaves}">0</p></div>
+                </div>
+                <div class="stat-card stat-purple">
+                    <div class="stat-icon">&#9203;</div>
+                    <div class="stat-info"><h3>Pending Leaves</h3><p class="counter" th:text="${pendingLeaves}">0</p></div>
+                </div>
+            </div>
+
+            <!-- Profile Details -->
+            <div class="table-card" style="margin-bottom:20px;">
+                <div style="padding:24px;display:flex;align-items:center;gap:20px;border-bottom:1px solid #f0f2f5;">
+                    <div class="avatar-lg" th:text="${employee.name != null and !employee.name.isEmpty()} ? ${employee.name.substring(0,1).toUpperCase()} : 'E'">E</div>
+                    <div>
+                        <h2 style="margin:0;font-size:20px;font-weight:800;" th:text="${employee.name}">-</h2>
+                        <p style="color:#667eea;font-weight:600;margin:4px 0;" th:text="${employee.position}">-</p>
+                        <div style="display:flex;gap:8px;margin-top:6px;">
+                            <span class="emp-code" th:text="${employee.employeeCode}">EMP-001</span>
+                            <span class="dept-badge" th:text="${employee.department}">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding:20px 24px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+                    <div class="detail-item"><span class="detail-label">Email</span><span th:text="${employee.email}">-</span></div>
+                    <div class="detail-item"><span class="detail-label">Phone</span><span th:text="${employee.phone != null} ? ${employee.phone} : '-'">-</span></div>
+                    <div class="detail-item"><span class="detail-label">Gender</span><span th:text="${employee.gender != null} ? ${employee.gender} : '-'">-</span></div>
+                    <div class="detail-item"><span class="detail-label">Blood Group</span><span th:text="${employee.bloodGroup != null} ? ${employee.bloodGroup} : '-'">-</span></div>
+                    <div class="detail-item"><span class="detail-label">Date of Joining</span><span th:text="${employee.dateOfJoining != null} ? ${employee.dateOfJoining} : '-'">-</span></div>
+                    <div class="detail-item"><span class="detail-label">Employment Type</span><span th:text="${employee.employmentType != null} ? ${employee.employmentType} : '-'">-</span></div>
+                    <div class="detail-item"><span class="detail-label">Salary</span>
+                        <span style="color:#1abc9c;font-weight:700;" th:text="${employee.salary > 0} ? 'Rs.' + ${#numbers.formatDecimal(employee.salary,1,'COMMA',0,'POINT')} : 'N/A'">-</span>
+                    </div>
+                    <div class="detail-item"><span class="detail-label">Status</span>
+                        <span class="badge badge-approved" th:text="${employee.status != null} ? ${employee.status} : 'Active'">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave Balance -->
+            <div class="table-card" style="margin-bottom:20px;">
+                <div class="table-header"><h3>&#128197; Leave Balance</h3>
+                    <a href="/leave" class="btn btn-primary" style="text-decoration:none;">Apply Leave</a>
+                </div>
+                <div style="padding:20px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+                    <div class="leave-balance-card">
+                        <h4>Sick Leave</h4>
+                        <p class="balance-count" th:text="${employee.sickLeaveBalance}">12</p>
+                        <small>days remaining</small>
+                    </div>
+                    <div class="leave-balance-card">
+                        <h4>Casual Leave</h4>
+                        <p class="balance-count" th:text="${employee.casualLeaveBalance}">12</p>
+                        <small>days remaining</small>
+                    </div>
+                    <div class="leave-balance-card">
+                        <h4>Earned Leave</h4>
+                        <p class="balance-count" th:text="${employee.earnedLeaveBalance}">15</p>
+                        <small>days remaining</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Attendance -->
+            <div class="table-card" style="margin-bottom:20px;">
+                <div class="table-header"><h3>&#128197; Recent Attendance</h3></div>
+                <table>
+                    <thead><tr><th>#</th><th>Date</th><th>Status</th><th>Remarks</th></tr></thead>
+                    <tbody>
+                        <tr th:each="a,i : ${attendanceList}" th:if="${i.index < 10}">
+                            <td th:text="${i.count}">1</td>
+                            <td th:text="${a.date}">-</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${a.status == 'Present'} ? 'badge-approved' :
+                                                      (${a.status == 'Absent'} ? 'badge-rejected' : 'badge-pending')"
+                                      th:text="${a.status}">-</span>
+                            </td>
+                            <td th:text="${a.remarks != null} ? ${a.remarks} : '-'">-</td>
+                        </tr>
+                        <tr th:if="${attendanceList.isEmpty()}">
+                            <td colspan="4" class="empty-cell">No attendance records.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- My Leave Requests -->
+            <div class="table-card">
+                <div class="table-header"><h3>&#128203; My Leave Requests</h3></div>
+                <table>
+                    <thead><tr><th>#</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr th:each="l,i : ${leaveList}">
+                            <td th:text="${i.count}">1</td>
+                            <td th:text="${l.leaveType != null} ? ${l.leaveType} : ${l.reason}">-</td>
+                            <td th:text="${l.fromDate}">-</td>
+                            <td th:text="${l.toDate}">-</td>
+                            <td th:text="${l.totalDays > 0} ? ${l.totalDays} : '-'">-</td>
+                            <td>
+                                <span class="badge" th:text="${l.status}"
+                                      th:classappend="${l.status == 'Approved'} ? 'badge-approved' :
+                                                      (${l.status == 'Rejected'} ? 'badge-rejected' : 'badge-pending')">-</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${leaveList.isEmpty()}">
+                            <td colspan="6" class="empty-cell">No leave requests.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Employee Management System</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+
+<div class="container">
+    <div class="login-card">
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-icon">&#10024;</div>
+            <h2>Create Account</h2>
+            <p class="subtitle">Employee Management System</p>
+        </div>
+
+        <!-- Error -->
+        <div th:if="${error}" class="alert-error">
+            &#9888; <span th:text="${error}">Error</span>
+        </div>
+
+        <form th:action="@{/register}" method="post" id="registerForm" onsubmit="return validateRegisterRole()">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <!-- Hidden role field — set by JS -->
+            <input type="hidden" name="role" id="roleValue" value="">
+
+            <!-- Register as label -->
+            <span class="role-section-title">Register as:</span>
+
+            <!-- Role Cards — koi bhi pre-selected NAHI -->
+            <div class="role-selector">
+                <div class="role-option">
+                    <div class="role-card" id="regCardAdmin" onclick="selectRegisterRole('ADMIN', this)">
+                        <span class="role-icon">&#128081;</span>
+                        <span class="role-name">Admin</span>
+                        <span class="role-desc">Full system access</span>
+                    </div>
+                </div>
+                <div class="role-option">
+                    <div class="role-card" id="regCardEmployee" onclick="selectRegisterRole('EMPLOYEE', this)">
+                        <span class="role-icon">&#128100;</span>
+                        <span class="role-name">Employee</span>
+                        <span class="role-desc">Limited access</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role validation message -->
+            <div id="regRoleError" style="display:none;color:#dc2626;font-size:12px;
+                 font-weight:600;margin-bottom:12px;padding:8px 12px;
+                 background:#fee2e2;border-radius:8px;border:1px solid #fecaca;">
+                &#9888; Please select Admin or Employee to continue.
+            </div>
+
+            <!-- Full Name -->
+            <div class="field">
+                <label class="field-label">Full Name</label>
+                <div class="field-wrap">
+                    <span class="field-icon">&#128100;</span>
+                    <input type="text" name="name" placeholder="e.g. John Doe" required>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="field">
+                <label class="field-label">Email Address</label>
+                <div class="field-wrap">
+                    <span class="field-icon">&#128231;</span>
+                    <input type="email" name="email" placeholder="e.g. john@company.com" required>
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div class="field">
+                <label class="field-label">Username</label>
+                <div class="field-wrap">
+                    <span class="field-icon">&#128273;</span>
+                    <input type="text" name="username" placeholder="Choose a username"
+                           required autocomplete="username">
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+                <label class="field-label">Password</label>
+                <div class="field-wrap">
+                    <span class="field-icon">&#128274;</span>
+                    <input type="password" name="password" placeholder="Create a password"
+                           required autocomplete="new-password">
+                </div>
+            </div>
+
+            <!-- Disabled until role selected -->
+            <button type="submit" class="login-btn" id="registerBtn" disabled>
+                Select a Role to Register
+            </button>
+        </form>
+
+        <div class="divider"><span>OR</span></div>
+
+        <a href="/oauth2/authorization/google" class="google-btn">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google">
+            Register with Google
+        </a>
+
+        <p class="form-footer">
+            Already have an account? <a href="/login">Sign in</a>
+        </p>
+
+    </div>
+</div>
+
+<script>
+    var selectedRegisterRole = null;
+
+    function selectRegisterRole(role, card) {
+        // Deselect all
+        document.querySelectorAll('.role-card').forEach(function(c) {
+            c.classList.remove('selected');
+        });
+
+        // Select clicked
+        card.classList.add('selected');
+        selectedRegisterRole = role;
+
+        // Set hidden input value
+        document.getElementById('roleValue').value = role;
+
+        // Enable button and update text
+        var btn = document.getElementById('registerBtn');
+        btn.disabled = false;
+        btn.textContent = 'Register as ' + (role === 'ADMIN' ? 'Admin' : 'Employee');
+
+        // Hide error
+        document.getElementById('regRoleError').style.display = 'none';
+    }
+
+    function validateRegisterRole() {
+        if (!selectedRegisterRole) {
+            document.getElementById('regRoleError').style.display = 'block';
+            return false;
+        }
+        return true;
+    }
+</script>
+
+</body>
+</html>

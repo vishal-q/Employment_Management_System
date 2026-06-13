@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Employee Management System</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+
+<div class="container">
+    <div class="login-card">
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-icon">&#127970;</div>
+            <h2>Employee Management System</h2>
+            <p class="subtitle">Sign in to your account</p>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${param.registered}" class="alert-success">
+            &#10003; Account created! Please sign in.
+        </div>
+        <div th:if="${param.logout}" class="info-box">
+            &#128075; You have been logged out.
+        </div>
+        <div th:if="${param.error}" class="alert-error">
+            &#9888; Invalid username or password.
+        </div>
+
+        <!-- Sign in as label -->
+        <span class="role-section-title">Sign in as:</span>
+
+        <!-- Role Cards — koi bhi pre-selected NAHI -->
+        <div class="role-selector">
+            <div class="role-option">
+                <div class="role-card" id="cardAdmin" onclick="selectRole('ADMIN', this)">
+                    <span class="role-icon">&#128081;</span>
+                    <span class="role-name">Admin</span>
+                    <span class="role-desc">Full access</span>
+                </div>
+            </div>
+            <div class="role-option">
+                <div class="role-card" id="cardEmployee" onclick="selectRole('EMPLOYEE', this)">
+                    <span class="role-icon">&#128100;</span>
+                    <span class="role-name">Employee</span>
+                    <span class="role-desc">Limited access</span>
+                </div>
+            </div>
+        </div>
+
+        <form th:action="@{/login}" method="post" id="loginForm" onsubmit="return validateRole()">
+
+            <!-- Username -->
+            <div class="field">
+                <label class="field-label">Username</label>
+                <div class="field-wrap">
+                    <span class="field-icon">&#128100;</span>
+                    <input type="text" name="username" placeholder="Enter your username"
+                           required autocomplete="username">
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+                <label class="field-label">Password</label>
+                <div class="field-wrap">
+                    <span class="field-icon">&#128274;</span>
+                    <input type="password" name="password" placeholder="Enter your password"
+                           required autocomplete="current-password">
+                </div>
+            </div>
+
+            <!-- Role validation message -->
+            <div id="roleError" style="display:none;color:#dc2626;font-size:12px;
+                 font-weight:600;margin-bottom:10px;padding:8px 12px;
+                 background:#fee2e2;border-radius:8px;border:1px solid #fecaca;">
+                &#9888; Please select Admin or Employee to continue.
+            </div>
+
+            <!-- Disabled by default until role selected -->
+            <button type="submit" class="login-btn" id="loginBtn" disabled>
+                Select a Role to Sign In
+            </button>
+
+        </form>
+
+        <div class="divider"><span>OR</span></div>
+
+        <a href="/oauth2/authorization/google" class="google-btn">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google">
+            Continue with Google
+        </a>
+
+        <p class="form-footer">
+            Don't have an account? <a href="/register">Register here</a>
+        </p>
+
+    </div>
+</div>
+
+<script>
+    var selectedRole = null;
+
+    function selectRole(role, card) {
+        // Deselect all cards
+        document.querySelectorAll('.role-card').forEach(function(c) {
+            c.classList.remove('selected');
+        });
+
+        // Select clicked card
+        card.classList.add('selected');
+        selectedRole = role;
+
+        // Enable button and update text
+        var btn = document.getElementById('loginBtn');
+        btn.disabled = false;
+        btn.textContent = 'Sign In as ' + (role === 'ADMIN' ? 'Admin' : 'Employee');
+
+        // Hide error if showing
+        document.getElementById('roleError').style.display = 'none';
+    }
+
+    function validateRole() {
+        if (!selectedRole) {
+            document.getElementById('roleError').style.display = 'block';
+            return false;  // Block form submit
+        }
+        return true;
+    }
+</script>
+
+</body>
+</html>

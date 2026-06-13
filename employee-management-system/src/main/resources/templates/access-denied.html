@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Access Denied - EMS</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <style>
+        .error-card {
+            text-align: center;
+        }
+        .error-icon {
+            font-size: 60px;
+            margin-bottom: 16px;
+        }
+        .error-card h2 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        .error-card p {
+            color: #666;
+            margin-bottom: 24px;
+        }
+        .btn-back {
+            display: inline-block;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .btn-back:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="login-card error-card">
+        <div class="error-icon">&#128683;</div>
+        <h2>Access Denied</h2>
+        <p>You don't have permission to access this page.<br>
+           This section is restricted to <strong>Admins</strong> only.</p>
+        <a href="/dashboard" class="btn-back">&#8592; Go to Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaints - EMS</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">E</div><div><h2>EMS</h2><p>Management Portal</p></div></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="/dashboard"><span class="nav-icon">&#127968;</span> Dashboard</a>
+        <div sec:authorize="hasRole('ADMIN')"><a href="/employees"><span class="nav-icon">&#128101;</span> Employees</a></div>
+        <a href="/attendance"><span class="nav-icon">&#128197;</span> Attendance</a>
+        <a href="/leave"><span class="nav-icon">&#128203;</span> Leave</a>
+        <div sec:authorize="hasRole('EMPLOYEE')"><a href="/my-profile"><span class="nav-icon">&#128100;</span> My Profile</a></div>
+        <div class="nav-section-title">Communication</div>
+        <a href="/announcements"><span class="nav-icon">&#128226;</span> Announcements</a>
+        <a href="/messages"><span class="nav-icon">&#128140;</span> Messages</a>
+        <a href="/tasks"><span class="nav-icon">&#9989;</span> Tasks</a>
+        <a href="/wfh"><span class="nav-icon">&#127968;</span> Work From Home</a>
+        <a href="/complaints" class="active"><span class="nav-icon">&#128226;</span> Complaints</a>
+        <a href="/notifications"><span class="nav-icon">&#128276;</span> Notifications</a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">&#128682; Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left"><h1>Complaints / Grievances</h1><p>Submit and track complaints</p></div>
+        <div class="topbar-right"><button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button></div>
+    </div>
+
+    <div class="page-content">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${noProfile}" class="alert alert-info">Your profile is not linked. Contact Admin.</div>
+
+        <!-- Employee: Submit Complaint -->
+        <div sec:authorize="hasRole('EMPLOYEE')" th:if="${!noProfile}" class="form-card" style="margin-bottom:20px;">
+            <h3 class="form-title">&#128226; Submit Complaint / Grievance</h3>
+            <form th:action="@{/complaints/submit}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select name="category" class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option value="Salary Issue">Salary Issue</option>
+                            <option value="Work Environment">Work Environment</option>
+                            <option value="Harassment">Harassment</option>
+                            <option value="Manager Behavior">Manager Behavior</option>
+                            <option value="Technical Issues">Technical Issues</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject *</label>
+                        <input type="text" name="subject" class="form-control" placeholder="Brief subject" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="Describe your complaint in detail..." required style="resize:vertical;"></textarea>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;">
+                    <input type="checkbox" name="anonymous" value="true">
+                    Submit Anonymously
+                </label>
+                <button type="submit" class="btn-submit">Submit Complaint</button>
+            </form>
+        </div>
+
+        <!-- Complaints Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>&#128203; Complaint Records</h3>
+                <span th:if="${openCount != null and openCount > 0}"
+                      style="background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;"
+                      th:text="${openCount} + ' open'">0</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th th:if="${isAdmin}">Employee</th>
+                        <th>Category</th><th>Subject</th>
+                        <th>Date</th><th>Status</th>
+                        <th th:if="${isAdmin}">Respond</th>
+                        <th th:unless="${isAdmin}">Admin Response</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c,i : ${complaints}">
+                        <td th:text="${i.count}">1</td>
+                        <td th:if="${isAdmin}">
+                            <span th:if="${!c.anonymous}" th:text="${c.employeeName}">-</span>
+                            <span th:if="${c.anonymous}">Anonymous</span>
+                        </td>
+                        <td><span class="dept-badge" th:text="${c.category}">-</span></td>
+                        <td th:text="${c.subject}">-</td>
+                        <td th:text="${c.submittedOn}">-</td>
+                        <td>
+                            <span th:if="${c.status == 'Resolved' or c.status == 'Closed'}" class="badge badge-approved" th:text="${c.status}">-</span>
+                            <span th:if="${c.status == 'Open'}" class="badge badge-rejected" th:text="${c.status}">-</span>
+                            <span th:unless="${c.status == 'Resolved' or c.status == 'Closed' or c.status == 'Open'}" class="badge badge-pending" th:text="${c.status}">-</span>
+                        </td>
+                        <td th:if="${isAdmin}">
+                            <div th:if="${c.status == 'Open' or c.status == 'In Progress'}">
+                                <form th:action="@{/complaints/respond/{id}(id=${c.id})}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <textarea name="adminResponse" class="form-control" rows="2" placeholder="Your response..." style="resize:vertical;font-size:12px;margin-bottom:6px;"></textarea>
+                                    <select name="status" class="form-control" style="font-size:12px;margin-bottom:6px;">
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                        <option value="Closed">Closed</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary">Send Response</button>
+                                </form>
+                            </div>
+                            <span th:unless="${c.status == 'Open' or c.status == 'In Progress'}"
+                                  style="color:#888;font-size:12px;" th:text="${c.adminResponse}">-</span>
+                        </td>
+                        <td th:unless="${isAdmin}">
+                            <span th:if="${c.adminResponse != null}" style="color:#333;font-size:13px;" th:text="${c.adminResponse}">-</span>
+                            <span th:if="${c.adminResponse == null}" style="color:#aaa;font-size:12px;">Awaiting response...</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${complaints.isEmpty()}">
+                        <td colspan="8" class="empty-cell">No complaints found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

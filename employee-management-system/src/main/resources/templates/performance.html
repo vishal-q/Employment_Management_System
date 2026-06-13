@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Performance - EMS</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">E</div><div><h2>EMS</h2><p>Management Portal</p></div></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="/dashboard"><span class="nav-icon">&#127968;</span> Dashboard</a>
+        <div sec:authorize="hasRole('ADMIN')"><a href="/employees"><span class="nav-icon">&#128101;</span> Employees</a></div>
+        <a href="/attendance"><span class="nav-icon">&#128197;</span> Attendance</a>
+        <a href="/leave"><span class="nav-icon">&#128203;</span> Leave</a>
+        <div sec:authorize="hasRole('EMPLOYEE')"><a href="/my-profile"><span class="nav-icon">&#128100;</span> My Profile</a></div>
+        <div class="nav-section-title">HR</div>
+        <a href="/salary"><span class="nav-icon">&#128176;</span> Salary Slips</a>
+        <a href="/performance" class="active"><span class="nav-icon">&#11088;</span> Performance</a>
+        <a href="/holidays"><span class="nav-icon">&#127881;</span> Holidays</a>
+        <div class="nav-section-title">Communication</div>
+        <a href="/announcements"><span class="nav-icon">&#128226;</span> Announcements</a>
+        <a href="/messages"><span class="nav-icon">&#128140;</span> Messages</a>
+        <a href="/tasks"><span class="nav-icon">&#9989;</span> Tasks</a>
+        <a href="/wfh"><span class="nav-icon">&#127968;</span> Work From Home</a>
+        <a href="/complaints"><span class="nav-icon">&#128226;</span> Complaints</a>
+        <a href="/notifications"><span class="nav-icon">&#128276;</span> Notifications</a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">&#128682; Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left"><h1>Performance Reviews</h1><p>Employee performance tracking</p></div>
+        <div class="topbar-right"><button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button></div>
+    </div>
+
+    <div class="page-content">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${noProfile}" class="alert alert-info">Your profile is not linked. Contact Admin.</div>
+
+        <!-- Admin: Add Review -->
+        <div sec:authorize="hasRole('ADMIN')" class="form-card" style="margin-bottom:20px;">
+            <h3 class="form-title">&#11088; Add Performance Review</h3>
+            <form th:action="@{/performance/add}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Employee *</label>
+                        <select name="employeeId" class="form-control" required>
+                            <option value="">Select Employee</option>
+                            <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.name}">-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Review Period *</label>
+                        <input type="text" name="reviewPeriod" class="form-control" placeholder="e.g. Q1 2026 or Annual 2026" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Review Type</label>
+                        <select name="reviewType" class="form-control">
+                            <option value="Quarterly">Quarterly</option>
+                            <option value="Annual">Annual</option>
+                            <option value="Probation">Probation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p style="font-size:13px;font-weight:700;color:#555;margin-bottom:10px;">Ratings (1=Poor, 5=Excellent)</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Technical Skills</label>
+                        <select name="technicalSkills" class="form-control">
+                            <option value="1">1 - Poor</option><option value="2">2 - Below Average</option>
+                            <option value="3" selected>3 - Average</option><option value="4">4 - Good</option><option value="5">5 - Excellent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Communication</label>
+                        <select name="communication" class="form-control">
+                            <option value="1">1</option><option value="2">2</option>
+                            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Teamwork</label>
+                        <select name="teamwork" class="form-control">
+                            <option value="1">1</option><option value="2">2</option>
+                            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Punctuality</label>
+                        <select name="punctuality" class="form-control">
+                            <option value="1">1</option><option value="2">2</option>
+                            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Productivity</label>
+                        <select name="productivity" class="form-control">
+                            <option value="1">1</option><option value="2">2</option>
+                            <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Strengths</label><textarea name="strengths" class="form-control" rows="2" placeholder="Employee strengths..."></textarea></div>
+                    <div class="form-group"><label>Areas for Improvement</label><textarea name="improvements" class="form-control" rows="2" placeholder="Areas to improve..."></textarea></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Comments</label><textarea name="comments" class="form-control" rows="2" placeholder="Overall comments..."></textarea></div>
+                    <div class="form-group"><label>Goal for Next Period</label><textarea name="goal" class="form-control" rows="2" placeholder="Goals..."></textarea></div>
+                </div>
+                <button type="submit" class="btn-submit">&#11088; Submit Review</button>
+            </form>
+        </div>
+
+        <!-- Reviews Table -->
+        <div class="table-card">
+            <div class="table-header"><h3>&#11088; Performance Reviews</h3></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th th:if="${isAdmin}">Employee</th>
+                        <th>Period</th><th>Type</th>
+                        <th>Tech</th><th>Comm</th><th>Team</th><th>Punct</th><th>Prod</th>
+                        <th>Overall</th>
+                        <th th:if="${isAdmin}">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r,i : ${reviews}">
+                        <td th:text="${i.count}">1</td>
+                        <td th:if="${isAdmin}" th:text="${r.employeeName}">-</td>
+                        <td th:text="${r.reviewPeriod}">-</td>
+                        <td><span class="dept-badge" th:text="${r.reviewType}">-</span></td>
+                        <td th:text="${r.technicalSkills}">-</td>
+                        <td th:text="${r.communication}">-</td>
+                        <td th:text="${r.teamwork}">-</td>
+                        <td th:text="${r.punctuality}">-</td>
+                        <td th:text="${r.productivity}">-</td>
+                        <td>
+                            <strong style="font-size:16px;"
+                                    th:classappend="${r.overallRating >= 4} ? 'color:#1abc9c' :
+                                                    (${r.overallRating >= 3} ? 'color:#f39c12' : 'color:#e74c3c')"
+                                    th:text="${r.overallRating} + '/5'">-</strong>
+                        </td>
+                        <td th:if="${isAdmin}">
+                            <form th:action="@{/performance/delete/{id}(id=${r.id})}" method="post"
+                                  onsubmit="return confirm('Delete this review?')">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-danger">&#128465;</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${reviews.isEmpty()}"><td colspan="12" class="empty-cell">No performance reviews found.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - EMS</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">E</div><div><h2>EMS</h2><p>Management Portal</p></div></div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="/dashboard"><span class="nav-icon">&#127968;</span> Dashboard</a>
+        <div sec:authorize="hasRole('ADMIN')"><a href="/employees"><span class="nav-icon">&#128101;</span> Employees</a></div>
+        <a href="/attendance"><span class="nav-icon">&#128197;</span> Attendance</a>
+        <a href="/leave"><span class="nav-icon">&#128203;</span> Leave</a>
+        <div sec:authorize="hasRole('EMPLOYEE')"><a href="/my-profile"><span class="nav-icon">&#128100;</span> My Profile</a></div>
+        <div class="nav-section-title">Communication</div>
+        <a href="/announcements"><span class="nav-icon">&#128226;</span> Announcements</a>
+        <a href="/messages" class="active"><span class="nav-icon">&#128140;</span> Messages</a>
+        <a href="/tasks"><span class="nav-icon">&#9989;</span> Tasks</a>
+        <a href="/wfh"><span class="nav-icon">&#127968;</span> Work From Home</a>
+        <a href="/complaints"><span class="nav-icon">&#128226;</span> Complaints</a>
+        <a href="/notifications"><span class="nav-icon">&#128276;</span> Notifications</a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit">&#128682; Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left"><h1>Messages</h1><p>Internal messaging system</p></div>
+        <div class="topbar-right"><button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button></div>
+    </div>
+
+    <div class="page-content">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <!-- Compose Message -->
+        <div class="form-card" style="margin-bottom:20px;">
+            <h3 class="form-title">&#128140; Compose Message</h3>
+            <form th:action="@{/messages/send}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <!-- Admin: select employee recipient -->
+                <div sec:authorize="hasRole('ADMIN')" class="form-group">
+                    <label>Send To *</label>
+                    <select name="toUserId" class="form-control">
+                        <option value="">Select Employee</option>
+                        <option th:each="emp : ${employees}" th:value="${emp.id}"
+                                th:text="${emp.name} + ' (' + ${emp.username} + ')'">Employee</option>
+                    </select>
+                </div>
+
+                <!-- Employee: message goes to Admin -->
+                <div sec:authorize="hasRole('EMPLOYEE')" class="form-group">
+                    <label>Sending to</label>
+                    <input type="text" class="form-control" value="Admin / HR" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject *</label>
+                    <input type="text" name="subject" class="form-control" placeholder="Message subject" required>
+                </div>
+                <div class="form-group">
+                    <label>Message *</label>
+                    <textarea name="body" class="form-control" rows="4" placeholder="Write your message..." required style="resize:vertical;"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">&#9992; Send Message</button>
+            </form>
+        </div>
+
+        <!-- Inbox & Sent Tabs -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>&#128140; Inbox</h3>
+                <span style="font-size:13px;color:#888;" th:text="${inbox.size()} + ' messages'">0</span>
+            </div>
+            <table>
+                <thead><tr><th>From</th><th>Subject</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody>
+                    <tr th:each="msg : ${inbox}" th:classappend="${!msg.readByRecipient} ? 'unread-row' : ''">
+                        <td>
+                            <span class="badge" th:classappend="${msg.fromRole == 'ADMIN'} ? 'badge-approved' : 'badge-pending'"
+                                  th:text="${msg.fromRole}">-</span>
+                            <span th:text="${msg.fromName}">-</span>
+                        </td>
+                        <td th:text="${msg.subject}">-</td>
+                        <td th:text="${msg.sentAt}">-</td>
+                        <td>
+                            <span th:if="${!msg.readByRecipient}" class="badge badge-pending">New</span>
+                            <span th:if="${msg.readByRecipient}" style="color:#aaa;font-size:12px;">Read</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${inbox.isEmpty()}"><td colspan="4" class="empty-cell">No messages in inbox.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-card" style="margin-top:20px;">
+            <div class="table-header"><h3>&#128228; Sent Messages</h3></div>
+            <table>
+                <thead><tr><th>To</th><th>Subject</th><th>Date</th></tr></thead>
+                <tbody>
+                    <tr th:each="msg : ${sent}">
+                        <td th:text="${msg.toName != null} ? ${msg.toName} : 'Admin'">-</td>
+                        <td th:text="${msg.subject}">-</td>
+                        <td th:text="${msg.sentAt}">-</td>
+                    </tr>
+                    <tr th:if="${sent.isEmpty()}"><td colspan="3" class="empty-cell">No sent messages.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
