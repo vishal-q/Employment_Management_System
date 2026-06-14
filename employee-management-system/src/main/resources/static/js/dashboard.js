@@ -1,64 +1,87 @@
 /* ==============================
+   DASHBOARD JAVASCRIPT
+   ============================== */
+
+
+/* ==============================
    DARK MODE
    ============================== */
+
 function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDark);
-    const btn = document.querySelector('.dark-toggle');
-    if (btn) btn.textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+
+    document.body.classList.toggle("dark-mode");
+
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-        const btn = document.querySelector('.dark-toggle');
-        if (btn) btn.textContent = '\u2600\uFE0F';
+
+/* ==============================
+   NOTIFICATION BELL
+   ============================== */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const bell = document.querySelector(".notification");
+
+    if (bell) {
+
+        bell.addEventListener("click", function () {
+
+            alert("No new notifications");
+
+        });
+
     }
+
 });
 
-/* ==============================
-   COUNTER ANIMATION
-   ============================== */
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.counter').forEach(function (el) {
-        var target = parseInt(el.innerText) || 0;
-        if (target === 0) return;
-        var step = Math.ceil(target / 40);
-        var current = 0;
-        var timer = setInterval(function () {
-            current += step;
-            if (current >= target) { el.innerText = target; clearInterval(timer); }
-            else el.innerText = current;
-        }, 20);
-    });
-});
 
 /* ==============================
-   AUTO-HIDE ALERTS
+   CARD COUNTER ANIMATION
    ============================== */
-document.addEventListener('DOMContentLoaded', function () {
-    var alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function (a) {
-        setTimeout(function () {
-            a.style.transition = 'opacity 0.5s';
-            a.style.opacity = '0';
-            setTimeout(function () { a.style.display = 'none'; }, 500);
-        }, 4000);
-    });
-});
 
-/* ==============================
-   ACTIVE SIDEBAR LINK
-   ============================== */
-document.addEventListener('DOMContentLoaded', function () {
-    var path = window.location.pathname;
-    document.querySelectorAll('.sidebar a').forEach(function (link) {
-        if (link.getAttribute('href') === path) {
-            document.querySelectorAll('.sidebar a').forEach(function (l) { l.classList.remove('active'); });
-            link.classList.add('active');
+document.addEventListener("DOMContentLoaded", function () {
+
+    const counters = document.querySelectorAll(".counter");
+
+    counters.forEach(counter => {
+
+        const target = parseInt(counter.innerText);
+
+        let count = 0;
+
+        const increment = target / 60;
+
+        function updateCounter() {
+
+            count += increment;
+
+            if (count < target) {
+
+                counter.innerText = Math.ceil(count);
+
+                requestAnimationFrame(updateCounter);
+
+            } else {
+
+                counter.innerText = target;
+
+            }
+
         }
+
+        updateCounter();
+
     });
+
 });
 
-console.log('EMS loaded');
+
+/* ==============================
+   PAGE LOAD LOG (Optional)
+   ============================== */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    console.log("Dashboard Loaded Successfully");
+
+});
