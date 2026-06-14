@@ -55,7 +55,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public
                 .requestMatchers("/", "/login", "/register",
-                                 "/css/**", "/js/**", "/images/**", "/access-denied").permitAll()
+                                 "/css/**", "/js/**", "/images/**",
+                                 "/CSS/**", "/JavaScript/**", "/Images/**",
+                                 "/static/**", "/webjars/**",
+                                 "/access-denied").permitAll()
 
                 // ADMIN only
                 .requestMatchers(
