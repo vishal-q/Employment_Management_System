@@ -58,7 +58,8 @@ public class SecurityConfig {
                                  "/css/**", "/js/**", "/images/**",
                                  "/CSS/**", "/JavaScript/**", "/Images/**",
                                  "/static/**", "/webjars/**",
-                                 "/access-denied").permitAll()
+                                 "/access-denied",
+                                 "/project-documentation").permitAll()
 
                 // ADMIN only
                 .requestMatchers(
