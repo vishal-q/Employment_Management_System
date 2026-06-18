@@ -31,6 +31,8 @@
 
 ## 🌐 [https://employment-management-system-ed8c.onrender.com](https://employment-management-system-ed8c.onrender.com)
 
+## 📄 [Project Documentation PDF](docs/EMS-Project-Documentation.pdf)
+
 > *A complete enterprise-grade HR portal with role-based access, real-time notifications, and full employee lifecycle management.*
 
 </div>
